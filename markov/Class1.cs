@@ -9,14 +9,76 @@ using Newtonsoft.Json;
 
 namespace markov
 {
+	public class NextWord
+    {
+
+    }
+
     public class Markov
     {
-        public Markov(Dictionary<string, Result> model)
+        public Dictionary<string, Result> Model { get; }
+
+		public Markov(Dictionary<string, Result> model)
+		{
+			Model = model;
+		}
+
+		public string Random => Selector.SelectRandomItem();
+
+		public IEnumerable<string> GetNextWord()
         {
-            Model = model;
+			bool first = true;
+
+			string word = null;
+			if (first)
+            {
+				var selec = new DynamicRandomSelector<string>();
+
+				var startingWords = Model.Values.Where(x => x.IsStartingWord);
+				int totalCount = startingWords.Sum(x => x.Counter);
+				foreach (var record in startingWords)
+				{
+					float raw = (float)record.Counter / (float)totalCount;
+
+					selec.Add(record.Value, raw);
+				}
+
+				selec.Build();
+
+				word = selec.SelectRandomItem();
+				yield return Model[word].Random;
+			}
+
+			while (true)
+            {
+				word = Model[word].Random;
+				yield return word;
+            }
         }
 
-        public Dictionary<string, Result> Model { get; }
+        private DynamicRandomSelector<string> _selector = null;
+        private DynamicRandomSelector<string> Selector
+        {
+            // not thread safe (yet)
+            get
+            {
+                if (_selector == null)
+                {
+                    _selector = new DynamicRandomSelector<string>();
+
+                    foreach (KeyValuePair<string, Result> record in Model)
+                    {
+                        float raw = (float)record.Value.Counter / (float)Model.Keys.Count;
+
+                        _selector.Add(record.Key, raw);
+                    }
+
+                    _selector.Build();
+                }
+
+                return _selector;
+            }
+        }
     }
 
 	public static class MarkovBuilder {
@@ -25,7 +87,7 @@ namespace markov
 			string regex = @"[\w'-]+|[.!?,:;]+";
 
 			List<string> tokens = File.ReadLines(filename)
-				.Take(200)
+				.Take(1000)
 				.Select(x => JsonConvert.DeserializeObject<Review>(x))
 				.Select(x => Regex.Matches(x.reviewText, regex).Cast<Match>())
 				.SelectMany(x => x)
@@ -59,11 +121,11 @@ namespace markov
 				{
 					if (prev == null)
 					{
-						model.Add(token, new Result());
+						model.Add(token, new Result(token));
 					}
 					else
 					{
-						model.Add(token, new Result());
+						model.Add(token, new Result(token));
 
 						if (model[prev].NextToken.ContainsKey(token))
 						{
@@ -86,8 +148,18 @@ namespace markov
 
 	public class Result
 	{
-		public int Counter { get; set; } = 1;
+		public string Value { get; set; }
+
+        public bool IsStartingWord => Regex.IsMatch(Value, @"[.!?]");
+
+
+        public int Counter { get; set; } = 1;
 		public Dictionary<string, int> NextToken { get; set; } = new Dictionary<string, int>();
+
+		public Result(string value)
+		{
+			Value = value;
+		}
 
 		public string Random => Selector.SelectRandomItem();
 
