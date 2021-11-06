@@ -9,11 +9,6 @@ using Newtonsoft.Json;
 
 namespace markov
 {
-	public class NextWord
-    {
-
-    }
-
     public class Markov
     {
         public Dictionary<string, Result> Model { get; }
