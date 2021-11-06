@@ -87,7 +87,7 @@ namespace markov
 			string regex = @"[\w'-]+|[.!?,:;]+";
 
 			List<string> tokens = File.ReadLines(filename)
-				.Take(1000)
+				.Take(5000)
 				.Select(x => JsonConvert.DeserializeObject<Review>(x))
 				.Select(x => Regex.Matches(x.reviewText, regex).Cast<Match>())
 				.SelectMany(x => x)

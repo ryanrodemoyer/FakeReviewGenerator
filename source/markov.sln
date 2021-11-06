@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.31612.314
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31624.102
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "markov", "markov\markov.csproj", "{9CA6EEC5-21F0-4C80-8E2B-7E3AB625298C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "markov.tests", "markov.tests\markov.tests.csproj", "{A301D1C0-1B71-4B64-8345-3374EEB24032}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "markov.api", "markov.api\markov.api.csproj", "{BC0889C8-D2B3-456D-B7C7-DE884C63C938}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{A301D1C0-1B71-4B64-8345-3374EEB24032}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A301D1C0-1B71-4B64-8345-3374EEB24032}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A301D1C0-1B71-4B64-8345-3374EEB24032}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC0889C8-D2B3-456D-B7C7-DE884C63C938}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC0889C8-D2B3-456D-B7C7-DE884C63C938}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC0889C8-D2B3-456D-B7C7-DE884C63C938}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC0889C8-D2B3-456D-B7C7-DE884C63C938}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
