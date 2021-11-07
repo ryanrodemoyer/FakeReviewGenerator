@@ -66,14 +66,14 @@ namespace markov.api.services
     {
         // the regex will ensure that punctuation is spaced appropriately so that it's "touching" the word instead of a blank space
         // then we select only the text that comprises one or more full sentence otherwise we are almost exclusively generating reviews that do not end with a punctuation mark
-        public string review => 
+        public string review =>
             Regex.Match(
                 Regex.Replace(string.Join(" ", _words), @" ([.!;?:,])", m => m.Groups[1].Value)
                 // regexr example of this in action: https://regexr.com/691ck
                 // interesting though that clicking the link regexr gives an error saying it took too long to run
                 // is it a bug with regexr?
                 // just make a change to the regex then undo to see it evaluate immediately
-                , @".+[!?.](?=[ .]+)").Value 
+                , @".+[!?.](?=[ .]+)").Value
                 ;
 
         public int rating => new Random().Next(1, 6);
@@ -121,7 +121,8 @@ namespace markov.api.services
     {
         public static void AddMarkov(this IServiceCollection services)
         {
-            var config = new MarkovConfig(() => {
+            var config = new MarkovConfig(() =>
+            {
                 // this regex will split the input in to tokens of words as well as punctuation
 
                 List<string> tokens = File.ReadLines("Health_and_Personal_Care_5.json")
