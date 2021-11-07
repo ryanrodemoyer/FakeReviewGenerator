@@ -47,30 +47,6 @@ namespace markov
 				yield return word;
             }
         }
-
-        private DynamicRandomSelector<string> _selector = null;
-        private DynamicRandomSelector<string> Selector
-        {
-            // not thread safe (yet)
-            get
-            {
-                if (_selector == null)
-                {
-                    _selector = new DynamicRandomSelector<string>();
-
-                    foreach (KeyValuePair<string, Result> record in Model)
-                    {
-                        float raw = (float)record.Value.Counter / (float)Model.Keys.Count;
-
-                        _selector.Add(record.Key, raw);
-                    }
-
-                    _selector.Build();
-                }
-
-                return _selector;
-            }
-        }
     }
 
 	public class MarkovConfig

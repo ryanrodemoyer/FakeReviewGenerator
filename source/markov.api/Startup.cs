@@ -1,4 +1,4 @@
-using markov.web.services;
+using markov.api.services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -53,7 +53,7 @@ namespace markov.api
     }
 }
 
-namespace markov.web.services
+namespace markov.api.services
 {
     using Newtonsoft.Json;
     using System;
@@ -65,8 +65,16 @@ namespace markov.web.services
     public record FakeReview
     {
         // the regex will ensure that punctuation is spaced appropriately so that it's "touching" the word instead of a blank space
-        public string review => Regex
-                .Replace(string.Join(" ", _words), @" ([.!;?:,])", m => m.Groups[1].Value);
+        // then we select only the text that comprises one or more full sentence otherwise we are almost exclusively generating reviews that do not end with a punctuation mark
+        public string review => 
+            Regex.Match(
+                Regex.Replace(string.Join(" ", _words), @" ([.!;?:,])", m => m.Groups[1].Value)
+                // regexr example of this in action: https://regexr.com/691ck
+                // interesting though that clicking the link regexr gives an error saying it took too long to run
+                // is it a bug with regexr?
+                // just make a change to the regex then undo to see it evaluate immediately
+                , @".+[!?.](?=[ .]+)").Value 
+                ;
 
         public int rating => new Random().Next(1, 6);
 
@@ -90,27 +98,27 @@ namespace markov.web.services
         public FakeReview GetFakeReview()
         {
             var r = new Random();
-            int max = r.Next(5, 100);
+            int max = r.Next(25, 100);
 
             var words = _markov.GetNextWord().Take(max).ToList();
             return new FakeReview(words);
         }
     }
 
+    public class Review
+    {
+        public string reviewerID { get; set; }
+        public string asin { get; set; }
+        public string reviewerName { get; set; }
+        public string reviewText { get; set; }
+        public double overall { get; set; }
+        public string summary { get; set; }
+        public int unixReviewTime { get; set; }
+        public string reviewTime { get; set; }
+    }
+
     public static class MarkovExtensions
     {
-        private class Review
-        {
-            public string reviewerID { get; set; }
-            public string asin { get; set; }
-            public string reviewerName { get; set; }
-            public string reviewText { get; set; }
-            public double overall { get; set; }
-            public string summary { get; set; }
-            public int unixReviewTime { get; set; }
-            public string reviewTime { get; set; }
-        }
-
         public static void AddMarkov(this IServiceCollection services)
         {
             var config = new MarkovConfig(() => {
