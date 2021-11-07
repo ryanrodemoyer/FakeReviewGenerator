@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
 using DataStructures.RandomSelector;
-using Newtonsoft.Json;
 
 namespace markov
 {
@@ -17,8 +16,6 @@ namespace markov
 		{
 			Model = model;
 		}
-
-		public string Random => Selector.SelectRandomItem();
 
 		public IEnumerable<string> GetNextWord()
         {
@@ -76,20 +73,20 @@ namespace markov
         }
     }
 
-	public static class MarkovBuilder {
-		public static Markov Build(string filename)
-		{
-			string regex = @"[\w'-]+|[.!?,:;]+";
+	public class MarkovConfig
+    {
+		public Func<List<string>> Tokenizer { get; set; }
 
-			List<string> tokens = File.ReadLines(filename)
-				.Take(5000)
-				.Select(x => JsonConvert.DeserializeObject<Review>(x))
-				.Select(x => Regex.Matches(x.reviewText, regex).Cast<Match>())
-				.SelectMany(x => x)
-				.SelectMany(x => x.Groups.Cast<Group>())
-				.Select(x => x.Value)
-				.ToList()
-				;
+        public MarkovConfig(Func<List<string>> tokenizer)
+        {
+            Tokenizer = tokenizer;
+        }
+    }
+
+	public static class MarkovBuilder {
+		public static Markov Build(MarkovConfig config)
+		{
+            List<string> tokens = config.Tokenizer();
 
 			var model = new Dictionary<string, Result>();
 
@@ -182,17 +179,4 @@ namespace markov
 			}
 		}
 	}
-
-	public class Review
-	{
-		public string reviewerID { get; set; }
-		public string asin { get; set; }
-		public string reviewerName { get; set; }
-		public string reviewText { get; set; }
-		public double overall { get; set; }
-		public string summary { get; set; }
-		public int unixReviewTime { get; set; }
-		public string reviewTime { get; set; }
-	}
-
 }

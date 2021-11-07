@@ -1,9 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using markov.web.services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace markov.api.Controllers
 {
@@ -12,44 +9,23 @@ namespace markov.api.Controllers
     public class GenerateController : ControllerBase
     {
         private readonly ILogger<GenerateController> _logger;
-        private readonly Markov _markov;
+        private readonly MarkovQuery _markovQuery;
 
         public GenerateController(
             ILogger<GenerateController> logger
-            , Markov markov
+            , MarkovQuery markovQuery
             )
         {
             _logger = logger;
-            _markov = markov;
+            _markovQuery = markovQuery;
         }
 
 
         [HttpGet]
-        public FakeReview Get()
+        public IActionResult Get()
         {
-            var r = new Random();
-            int max = r.Next(5, 100);
-
-            var words =_markov.GetNextWord().Take(max).ToList();
-            return new FakeReview(words);
-        }
-    }
-
-    public record FakeReview
-    {
-        public string review { get; set; }
-
-        public int rating => new Random().Next(1, 6);
-
-        public FakeReview(string review)
-        {
-            this.review = review;
-        }
-
-        public FakeReview(IEnumerable<string> words)
-        {
-            review = Regex
-                .Replace(string.Join(" ", words), @" ([.!;?:,])", m => m.Groups[1].Value);
+            FakeReview res = _markovQuery.GetFakeReview();
+            return Ok(res);
         }
     }
 }

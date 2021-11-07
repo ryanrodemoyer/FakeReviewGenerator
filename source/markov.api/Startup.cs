@@ -1,3 +1,4 @@
+using markov.web.services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -19,7 +20,8 @@ namespace markov.api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton(MarkovBuilder.Build($"Health_and_Personal_Care_5.json"));
+            services.AddMarkov();
+
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -47,6 +49,87 @@ namespace markov.api
             {
                 endpoints.MapControllers();
             });
+        }
+    }
+}
+
+namespace markov.web.services
+{
+    using Newtonsoft.Json;
+    using System;
+    using System.IO;
+    using System.Linq;
+    using System.Text.RegularExpressions;
+    using System.Collections.Generic;
+
+    public record FakeReview
+    {
+        // the regex will ensure that punctuation is spaced appropriately so that it's "touching" the word instead of a blank space
+        public string review => Regex
+                .Replace(string.Join(" ", _words), @" ([.!;?:,])", m => m.Groups[1].Value);
+
+        public int rating => new Random().Next(1, 6);
+
+        private IEnumerable<string> _words;
+
+        public FakeReview(IEnumerable<string> words)
+        {
+            _words = words;
+        }
+    }
+
+    public class MarkovQuery
+    {
+        private readonly Markov _markov;
+
+        public MarkovQuery(Markov markov)
+        {
+            _markov = markov;
+        }
+
+        public FakeReview GetFakeReview()
+        {
+            var r = new Random();
+            int max = r.Next(5, 100);
+
+            var words = _markov.GetNextWord().Take(max).ToList();
+            return new FakeReview(words);
+        }
+    }
+
+    public static class MarkovExtensions
+    {
+        private class Review
+        {
+            public string reviewerID { get; set; }
+            public string asin { get; set; }
+            public string reviewerName { get; set; }
+            public string reviewText { get; set; }
+            public double overall { get; set; }
+            public string summary { get; set; }
+            public int unixReviewTime { get; set; }
+            public string reviewTime { get; set; }
+        }
+
+        public static void AddMarkov(this IServiceCollection services)
+        {
+            var config = new MarkovConfig(() => {
+                // this regex will split the input in to tokens of words as well as punctuation
+
+                List<string> tokens = File.ReadLines("Health_and_Personal_Care_5.json")
+                    .Select(x => JsonConvert.DeserializeObject<Review>(x))
+                    .Select(x => Regex.Matches(x.reviewText, @"[\w'-]+|[.!?,:;]+").Cast<Match>())
+                    .SelectMany(matchList => matchList)
+                    .SelectMany(match => match.Groups.Cast<Group>())
+                    .Select(group => group.Value)
+                    .ToList()
+                    ;
+
+                return tokens;
+            });
+
+            services.AddSingleton(MarkovBuilder.Build(config));
+            services.AddSingleton<MarkovQuery>();
         }
     }
 }
